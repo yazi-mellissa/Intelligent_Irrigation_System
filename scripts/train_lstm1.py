@@ -28,7 +28,12 @@ def _parse_args() -> argparse.Namespace:
 
     p.add_argument("--seq-len", type=int, default=7)
     p.add_argument("--horizon", type=int, default=1)
-    p.add_argument("--test-years", type=str, default="2022,2023")
+    p.add_argument(
+        "--test-years",
+        type=str,
+        default="2022,2023",
+        help="Comma-separated years held out for test metrics. Use empty string to train on all years.",
+    )
 
     p.add_argument("--epochs", type=int, default=500)
     p.add_argument("--batch-size", type=int, default=128)
@@ -83,8 +88,12 @@ def main() -> None:
 
     df = df[["date", "year", *feature_cols]].copy()
 
-    train_df = df[~df["year"].isin(test_years)].copy()
-    test_df = df[df["year"].isin(test_years)].copy()
+    if test_years:
+        train_df = df[~df["year"].isin(test_years)].copy()
+        test_df = df[df["year"].isin(test_years)].copy()
+    else:
+        train_df = df.copy()
+        test_df = df.iloc[0:0].copy()
 
     # Fit a scaler on the training set for all feature columns (including SWTD).
     scaler = StandardScaler()
@@ -106,14 +115,16 @@ def main() -> None:
         horizon=args.horizon,
         year_col="year",
     )
-    test_ds = make_next_day_supervised(
-        test_scaled,
-        feature_cols=feature_cols,
-        target_col=target_col,
-        seq_len=args.seq_len,
-        horizon=args.horizon,
-        year_col="year",
-    )
+    test_ds = None
+    if test_years and len(test_scaled) > 0:
+        test_ds = make_next_day_supervised(
+            test_scaled,
+            feature_cols=feature_cols,
+            target_col=target_col,
+            seq_len=args.seq_len,
+            horizon=args.horizon,
+            year_col="year",
+        )
 
     run = make_run_dir(args.artifacts_root, "lstm1_swtd")
     ckpt_path = run.checkpoints_dir / "best.keras"
@@ -158,18 +169,23 @@ def main() -> None:
     model.save(run.path("model.keras"))
     joblib.dump({"scaler": scaler, "feature_cols": feature_cols}, run.path("scaler.joblib"))
 
-    # Evaluation on test years (in original units)
-    y_pred_scaled = model.predict(test_ds.x, verbose=0).reshape(-1)
-    y_true_scaled = test_ds.y.reshape(-1)
-    y_pred = _inverse_swtd(scaler, y_pred_scaled, feature_cols)
-    y_true = _inverse_swtd(scaler, y_true_scaled, feature_cols)
+    # Metrics: if test years are provided, compute on test in original units.
+    # Otherwise, record best validation loss as a minimal training-time signal.
+    metrics: dict[str, float] = {}
+    if test_ds is not None:
+        y_pred_scaled = model.predict(test_ds.x, verbose=0).reshape(-1)
+        y_true_scaled = test_ds.y.reshape(-1)
+        y_pred = _inverse_swtd(scaler, y_pred_scaled, feature_cols)
+        y_true = _inverse_swtd(scaler, y_true_scaled, feature_cols)
 
-    mse = float(mean_squared_error(y_true, y_pred))
-    rmse = float(np.sqrt(mse))
-    mae = float(mean_absolute_error(y_true, y_pred))
-    r2 = float(r2_score(y_true, y_pred))
+        mse = float(mean_squared_error(y_true, y_pred))
+        rmse = float(np.sqrt(mse))
+        mae = float(mean_absolute_error(y_true, y_pred))
+        r2 = float(r2_score(y_true, y_pred))
 
-    metrics = {"mse": mse, "rmse": rmse, "mae": mae, "r2": r2}
+        metrics.update({"test_mse": mse, "test_rmse": rmse, "test_mae": mae, "test_r2": r2})
+    if "val_loss" in history.history:
+        metrics["best_val_loss"] = float(np.min(history.history["val_loss"]))
 
     save_json(
         run.path("config.json"),
@@ -191,7 +207,8 @@ def main() -> None:
     save_json(run.path("metrics.json"), metrics)
 
     pd.DataFrame(history.history).to_csv(run.path("history.csv"), index=False)
-    pd.DataFrame({"y_true": y_true, "y_pred": y_pred}).to_csv(run.path("predictions.csv"), index=False)
+    if test_ds is not None:
+        pd.DataFrame({"y_true": y_true, "y_pred": y_pred}).to_csv(run.path("predictions.csv"), index=False)
 
     print("\nSaved run to:", run.run_dir)
     print("Best checkpoint:", ckpt_path)
@@ -200,4 +217,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
