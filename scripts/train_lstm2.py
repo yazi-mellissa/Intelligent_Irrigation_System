@@ -28,12 +28,7 @@ def _parse_args() -> argparse.Namespace:
 
     p.add_argument("--seq-len", type=int, default=110)
     p.add_argument("--window", type=str, choices=["all", "last"], default="all")
-    p.add_argument(
-        "--test-years",
-        type=str,
-        default="2022,2023",
-        help="Comma-separated years held out for test metrics. Use empty string to train on all years.",
-    )
+    p.add_argument("--test-years", type=str, default="2022,2023")
 
     p.add_argument("--epochs", type=int, default=150)
     p.add_argument("--batch-size", type=int, default=64)
@@ -87,12 +82,8 @@ def main() -> None:
 
     df = df[["date", "year", *feature_cols, target_col]].copy()
 
-    if test_years:
-        train_df = df[~df["year"].isin(test_years)].copy()
-        test_df = df[df["year"].isin(test_years)].copy()
-    else:
-        train_df = df.copy()
-        test_df = df.iloc[0:0].copy()
+    train_df = df[~df["year"].isin(test_years)].copy()
+    test_df = df[df["year"].isin(test_years)].copy()
 
     feature_scaler = StandardScaler()
     feature_scaler.fit(train_df[feature_cols].to_numpy(dtype=np.float32))
@@ -113,21 +104,19 @@ def main() -> None:
         year_col="year",
         window=args.window,
     )
-    test_ds = None
-    if test_years and len(test_scaled) > 0:
-        test_ds = make_season_to_one_supervised(
-            test_scaled,
-            feature_cols=feature_cols,
-            target_col=target_col,
-            seq_len=args.seq_len,
-            year_col="year",
-            window=args.window,
-        )
+    test_ds = make_season_to_one_supervised(
+        test_scaled,
+        feature_cols=feature_cols,
+        target_col=target_col,
+        seq_len=args.seq_len,
+        year_col="year",
+        window=args.window,
+    )
 
     target_scaler = StandardScaler()
     target_scaler.fit(train_ds.y)
     y_train = target_scaler.transform(train_ds.y)
-    y_test = target_scaler.transform(test_ds.y) if test_ds is not None else None
+    y_test = target_scaler.transform(test_ds.y)
 
     run = make_run_dir(args.artifacts_root, "lstm2_yield")
     ckpt_path = run.checkpoints_dir / "best.keras"
@@ -180,19 +169,16 @@ def main() -> None:
         run.path("scalers.joblib"),
     )
 
-    metrics: dict[str, float] = {}
-    if test_ds is not None:
-        y_pred_scaled = model.predict(test_ds.x, verbose=0)
-        y_pred = target_scaler.inverse_transform(y_pred_scaled).reshape(-1)
-        y_true = test_ds.y.reshape(-1)
+    # Evaluation (in original units)
+    y_pred_scaled = model.predict(test_ds.x, verbose=0)
+    y_pred = target_scaler.inverse_transform(y_pred_scaled).reshape(-1)
+    y_true = test_ds.y.reshape(-1)
 
-        mse = float(mean_squared_error(y_true, y_pred))
-        rmse = float(np.sqrt(mse))
-        mae = float(mean_absolute_error(y_true, y_pred))
-        r2 = float(r2_score(y_true, y_pred))
-        metrics.update({"test_mse": mse, "test_rmse": rmse, "test_mae": mae, "test_r2": r2})
-    if "val_loss" in history.history:
-        metrics["best_val_loss"] = float(np.min(history.history["val_loss"]))
+    mse = float(mean_squared_error(y_true, y_pred))
+    rmse = float(np.sqrt(mse))
+    mae = float(mean_absolute_error(y_true, y_pred))
+    r2 = float(r2_score(y_true, y_pred))
+    metrics = {"mse": mse, "rmse": rmse, "mae": mae, "r2": r2}
 
     save_json(
         run.path("config.json"),
@@ -214,8 +200,7 @@ def main() -> None:
     save_json(run.path("metrics.json"), metrics)
 
     pd.DataFrame(history.history).to_csv(run.path("history.csv"), index=False)
-    if test_ds is not None:
-        pd.DataFrame({"y_true": y_true, "y_pred": y_pred}).to_csv(run.path("predictions.csv"), index=False)
+    pd.DataFrame({"y_true": y_true, "y_pred": y_pred}).to_csv(run.path("predictions.csv"), index=False)
 
     print("\nSaved run to:", run.run_dir)
     print("Best checkpoint:", ckpt_path)
@@ -224,3 +209,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

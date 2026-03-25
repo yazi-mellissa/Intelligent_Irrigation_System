@@ -95,8 +95,6 @@ python scripts/train_dqn.py ^
 
 NASA POWER daily point climate data (file: `Data/POWER_Point_Daily_20000101_20241212_033d36N_006d88E_LST.csv`, 8949 days × 19 vars) for ~33.3614°N, 6.8753°E. We generate two derived datasets via DSSAT CROPGRO-Tomato simulations: Data1 (`Data/output_data1.csv`, 3049 rows × 12 cols) and Data2 (`Data/output_data2.csv`, 3001 rows × 22 cols). Split by year: train years excluding 2022–2023, test = 2022–2023. Cleaning: drop NA + remove duplicate `HIAD.1` (identical to `HIAD`).
 
-Note: after selecting hyperparameters with a held-out test (e.g. 2022–2023), you can retrain a final model on **all years** using `--test-years ""`.
-
 **Reproducibility / seeds** (≤60 words):
 
 Seeds are set in Python `random`, NumPy, and TensorFlow (`tf.keras.utils.set_random_seed`). Scripts also set `PYTHONHASHSEED` and enable best-effort TF deterministic ops. Remaining nondeterminism can come from GPU kernels/cuDNN and parallelism during training.

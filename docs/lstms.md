@@ -18,11 +18,6 @@ To make training reproducible outside Colab, the training logic is implemented a
 - `T2M_MAX`, `T2M_MIN`, `WS2M`, `RH2M`, `ALLSKY_SFC_SW_DWN`, `ETo`, `IRRC`, `SWTD`
 
 **Split strategy** (default): test years = **2022, 2023** (as described in the report section for LSTM1).
-To train on **all years** (no explicit held-out test set), pass an empty string:
-
-```bash
-python scripts/train_lstm1.py --test-years ""
-```
 
 **Architecture** (matches the report/notebook style):
 
@@ -56,11 +51,6 @@ In the DSSAT outputs stored in `Data/output_data2.csv`, we use **`CWAD`** as a y
 - `T2M`, `PREC`, `T2M_MAX`, `T2M_MIN`, `WS2M`, `RH2M`, `ALLSKY_SFC_SW_DWN`, `ETo`, `IRRC`, `SWTD`
 
 **Split strategy** (default): test years = **2022, 2023**.
-To train on **all years** (no explicit held-out test set), pass:
-
-```bash
-python scripts/train_lstm2.py --test-years ""
-```
 
 **Architecture**:
 
@@ -85,3 +75,4 @@ python scripts/train_lstm2.py --seq-len 110 --window all --epochs 150 --batch-si
 
 - `requirements.txt` contains the Python dependencies used by these scripts.
 - For GPU training, install a compatible CUDA build of TensorFlow; otherwise CPU works (slower).
+
