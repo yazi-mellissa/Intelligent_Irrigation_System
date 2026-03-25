@@ -1,63 +1,82 @@
+# Autonomous Intelligent Irrigation System
+> Deep Reinforcement Learning for Water-Efficient Agriculture in Desert Regions
+
 ---
 
-# Système d’Irrigation Intelligent et Autonome
+## Overview
 
-## Description
+This project develops a smart, autonomous, and water-efficient irrigation system designed for **arid and desert environments** specifically the Saharan region of El Oued, Algeria. By combining **LSTM-based predictive models** with a **Deep Q-Network (DQN) reinforcement learning agent**, the system makes real-time irrigation decisions tailored to crop needs and local climate conditions, targeting tomato cultivation.
 
-Ce projet vise à développer un système d’irrigation intelligent, autonome et économe en eau, spécialement conçu pour les **zones désertiques** (ex. la région d’El Oued en Algérie). Grâce à l'intégration de **modèles prédictifs LSTM** et d’un **agent d’apprentissage par renforcement profond (DQN)**, le système adapte en temps réel l’irrigation en fonction des besoins des cultures (tomate) et des conditions climatiques locales.
+---
 
-## Objectifs du Projet
+## Motivation
 
-- Optimiser la gestion de l’eau dans des zones à stress hydrique élevé.
-- Améliorer les rendements agricoles en personnalisant l’irrigation.
-- Réduire les coûts d’irrigation par une gestion intelligente des ressources.
-- Intégrer des technologies d’**IA**, de simulation **agro-climatique**, et de **capteurs IoT**.
+Agricultural water management in desert climates is a critical challenge. Conventional irrigation wastes water, reduces yields, and is unsustainable at scale. This project addresses that gap by:
 
-## Technologies et Méthodologies Utilisées
+- Minimizing water waste in high water-stress zones
+- Maximizing crop yields through data-driven, personalized irrigation schedules
+- Reducing operational costs via intelligent resource management
+- Demonstrating the viability of AI-driven precision agriculture in harsh climates
 
-- **Deep Learning** : LSTM pour la prédiction du SWTD (soil water content) et du rendement.
-- **Reinforcement Learning** : Deep Q-Network (DQN) pour la décision optimale d’irrigation.
-- **Simulation agronomique** : DSSAT avec le module CROPGRO-Tomato (via DSSATTools).
-- **Sources de données** : NASA POWER pour les données climatiques.
-- **Prétraitement** : Z-Score, normalisation, PCA (selon les notebooks).
-- **Évaluation** : RMSE, R² pour la précision des modèles.
+---
 
-## Modèles
+## System Architecture
 
-### LSTM 1 : Prédiction SWTD
+The pipeline consists of three interconnected components:
 
-- Entrées : variables climatiques et irrigation (cf. `docs/data.md`).
-- Fenêtre temporelle : 4 à 7 jours.
-- Sortie : teneur en eau du sol le lendemain.
+### 1. LSTM Model — Soil Water Content Prediction
+- **Inputs:** Climatic variables + irrigation history (see `docs/data.md`)
+- **Temporal window:** 4–7 days
+- **Output:** Predicted soil water content (SWTD) for the next day
 
-### LSTM 2 : Prédiction du rendement
+### 2. LSTM Model — Yield Estimation
+- **Inputs:** Climate data, historical irrigation, full-season SWTD
+- **Output:** End-of-season biomass/yield estimate (proxied via DSSAT's `CWAD` variable)
 
-- Entrées : climat, irrigation historique, SWTD (saison complète).
-- Sortie : estimation du rendement/biomasse en fin de saison (proxy via `CWAD` selon DSSAT).
+### 3. DQN Agent — Irrigation Decision Optimizer
+- **Action space:** 12 discrete irrigation levels (0–60 mm/day)
+- **Reward function:** Economic yield − water cost
+- **Goal:** Learn an optimal policy that maximizes profit while conserving water
 
-### Agent DQN : Optimisation des volumes d’irrigation
+---
 
-- Actions possibles : 12 niveaux (0–60 mm/jour).
-- Récompense : rendement économique − coût de l’eau.
+## Tech Stack
 
-## Spécificités Régionales
+| Component | Technology |
+|---|---|
+| Predictive modeling | LSTM (Deep Learning) |
+| Decision-making | Deep Q-Network (DQN) |
+| Agronomic simulation | DSSAT / CROPGRO-Tomato (via DSSATTools) |
+| Climate data | NASA POWER API |
+| Preprocessing | Z-Score normalization, PCA |
+| Evaluation metrics | RMSE, R² |
 
-- **Localisation** : Wilaya d’El Oued, climat saharien extrême.
-- **Culture ciblée** : Tomate (variétés locales adaptées aux fortes chaleurs).
-- **Irrigation** : pivots agricoles mobiles automatisés.
+---
 
-## Report
+## Regional Context
 
-The full step-by-step methodology (data collection, DSSAT simulation, feature engineering, trainings, and figures) is documented in:
+- **Location:** Wilaya d'El Oued, Algeria : extreme Saharan climate
+- **Target crop:** Tomato (heat-adapted local varieties)
+- **Irrigation infrastructure:** Automated mobile pivot systems
 
-- `Rapport/Système_d_Irrigation_Intelligent.pdf`
+---
 
-## Acknowledgements / Inspiration
+## Project Report
 
-This implementation is inspired by the deep reinforcement learning irrigation literature (e.g., *Optimizing Irrigation Efficiency using Deep Reinforcement Learning in the Field* by Xianzhong Ding and Wan Du) and is adapted to the El Oued (Algeria) tomato setting using NASA POWER climate data and DSSAT-based simulation outputs.
+The complete methodology  including data collection, DSSAT simulation setup, feature engineering, model training procedures, and result figures  is documented in French in:
+
+```
+Rapport/Système_d_Irrigation_Intelligent.pdf
+```
+
+---
+
+## Acknowledgements
+
+This work draws inspiration from deep reinforcement learning approaches to irrigation optimization, particularly *"Optimizing Irrigation Efficiency using Deep Reinforcement Learning in the Field"* (Ding & Du). The implementation is adapted to the El Oued tomato growing context using NASA POWER climate data and DSSAT-based agronomic simulations.
+
+---
 
 ## License
 
-MIT License — see `LICENSE`.
-
----
+MIT License  see [`LICENSE`](./LICENSE).
