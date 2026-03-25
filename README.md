@@ -46,9 +46,18 @@ Ce projet vise à développer un système d’irrigation intelligent, autonome e
 - **Culture ciblée** : Tomate (variétés locales adaptées aux fortes chaleurs).
 - **Irrigation** : pivots agricoles mobiles automatisés.
 
-## Auteurs
+## Report
 
-- **Yazi Lynda Mellissa**
-- **Benmachiche Khaled**
+The full step-by-step methodology (data collection, DSSAT simulation, feature engineering, trainings, and figures) is documented in:
+
+- `Rapport/Système_d_Irrigation_Intelligent.pdf`
+
+## Acknowledgements / Inspiration
+
+This implementation is inspired by the deep reinforcement learning irrigation literature (e.g., *Optimizing Irrigation Efficiency using Deep Reinforcement Learning in the Field* by Xianzhong Ding and Wan Du) and is adapted to the El Oued (Algeria) tomato setting using NASA POWER climate data and DSSAT-based simulation outputs.
+
+## License
+
+MIT License — see `LICENSE`.
 
 ---

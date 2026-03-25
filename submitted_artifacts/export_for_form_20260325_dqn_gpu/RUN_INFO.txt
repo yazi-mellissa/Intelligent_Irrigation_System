@@ -1,0 +1,33 @@
+DATE=Wed Mar 25 21:29:29 +04 2026
+HOST=cn257
+PWD=/scratch/ylm5958/Intelligent_Irrigation_System
+
+NVIDIA-SMI:
+Wed Mar 25 21:29:29 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.105.08             Driver Version: 580.105.08     CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100 80GB PCIe          Off |   00000000:25:00.0 Off |                    0 |
+| N/A   33C    P0             48W /  300W |       0MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+
+TF GPU DEVICES:
+[PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
+
+COMMANDS:
+python scripts/train_lstm1.py --seq-len 7 --epochs 500 --batch-size 128 --test-years 2022,2023
+python scripts/train_lstm2.py --seq-len 110 --window all --epochs 150 --batch-size 64 --test-years 2022,2023
+python scripts/train_dqn.py --lstm1-run artifacts/lstm1_swtd/20260325_100609 --lstm2-run artifacts/lstm2_yield/20260325_100753 --episodes 200 --eval-every 25 --warmup 2000 --batch-size 64

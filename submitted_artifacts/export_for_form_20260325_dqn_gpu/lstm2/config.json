@@ -1,0 +1,34 @@
+{
+  "batch_size": 64,
+  "data_path": "Data/output_data2.csv",
+  "epochs": 150,
+  "feature_cols": [
+    "T2M",
+    "PREC",
+    "T2M_MAX",
+    "T2M_MIN",
+    "WS2M",
+    "RH2M",
+    "ALLSKY_SFC_SW_DWN",
+    "ETo",
+    "IRRC",
+    "SWTD"
+  ],
+  "model": {
+    "decay": 1e-05,
+    "dense_units": 128,
+    "dropout": 0.2,
+    "hidden_units": 128,
+    "learning_rate": 0.001
+  },
+  "patience": 20,
+  "seed": 1,
+  "seq_len": 110,
+  "target_col": "CWAD",
+  "test_years": [
+    2022,
+    2023
+  ],
+  "val_split": 0.2,
+  "window": "all"
+}

@@ -104,6 +104,7 @@ Seeds are set in Python `random`, NumPy, and TensorFlow (`tf.keras.utils.set_ran
 **Task, model family, alternatives, key hyperparameter** (≤100 words):
 
 Task is time-series regression + sequential decision-making: (1) predict next-day soil water (`SWTD`) with a BiLSTM (LSTM1), (2) predict end-of-season yield/biomass proxy (`CWAD`) with a BiLSTM (LSTM2), and (3) choose irrigation actions with DQN. Chosen because LSTMs model temporal dependencies better than linear regression and RandomForest, and DQN directly optimizes a long-horizon objective unlike threshold rules. Most impactful hyperparameter: sequence length (`seq_len`), searched around 4–110 (chosen 7 for LSTM1, 110 for LSTM2).
+This pipeline is inspired by deep RL irrigation work (e.g., Ding & Du) and adapted to the El Oued (Algeria) tomato setting using NASA POWER and DSSAT-derived features.
 
 **Supervision signal** (≤60 words):
 
@@ -117,11 +118,11 @@ Optimized validation MSE/RMSE for regression. Trade-off: minimizing RMSE can fav
 
 **Concrete failure mode** (≤100 words):
 
-<After you run training: describe one year/day where SWTD is systematically under/over-predicted (e.g., sharp changes after irrigation). Mention why (distribution shift, insufficient features, sequence length) and one attempted fix (different seq_len, adding SWTD history, regularization, re-scaling).>
+Concrete failure mode: LSTM2 generalizes poorly on the held-out years (2022–2023), with negative test R². The end-of-season CWAD values for 2022–2023 are much lower than many training years, suggesting distribution shift; the model tends to overpredict low-yield seasons. Attempted fix: keep strict year holdout, try `--window last` (one sample per season), and consider adding more agronomic PlantGro features to better explain low-yield seasons.
 
 **Final validation log + checkpoint filename** (≤60 words):
 
-Run `python scripts/print_artifact_summary.py <PATH_TO_RUN_DIR>` and paste the printed “metrics” + checkpoint file (e.g. `checkpoints/best.keras`). Add a brief note about overfitting signs (train loss decreasing while val loss increases).
+Full methodology is documented in `Rapport/Système_d_Irrigation_Intelligent.pdf`. LSTM1 test (2022–2023): rmse 4.81 r2 0.838 (`submitted_artifacts/export_for_form_20260325_dqn_gpu/lstm1/metrics.json`), checkpoint `submitted_artifacts/export_for_form_20260325_dqn_gpu/lstm1/best.keras`. LSTM2 test: rmse 186.85 r2 -0.285 (`.../lstm2/metrics.json`), checkpoint `.../lstm2/best.keras`. Overfitting: LSTM2 val_loss worsens after best epoch; early stopping restores best. DQN: `.../dqn/training_log.csv`, model `.../dqn/q_network.keras`.
 
 ## E. Compute & Systems
 
@@ -157,7 +158,7 @@ This dataset is partly **simulated** (DSSAT), and climate inputs come from a sin
 
 Licensing (≤50 words):
 
-<Add after publishing: choose a repo license (MIT/Apache-2.0) and verify external dataset/tool licenses (NASA POWER data usage terms, DSSATTools).>
+This repo is MIT-licensed (see `LICENSE`). Trained `.keras` / `.joblib` artifacts are my outputs and can be distributed under the repo license. Key dependencies are permissive (TensorFlow Apache-2.0; NumPy/Pandas/Scikit-learn BSD). NASA POWER data is publicly available with attribution; DSSAT/DSSATTools usage terms should be followed.
 
 ## I. Math & Understanding
 

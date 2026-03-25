@@ -1,0 +1,31 @@
+{
+  "batch_size": 128,
+  "data_path": "Data/output_data1.csv",
+  "epochs": 500,
+  "feature_cols": [
+    "T2M_MAX",
+    "T2M_MIN",
+    "WS2M",
+    "RH2M",
+    "ALLSKY_SFC_SW_DWN",
+    "ETo",
+    "IRRC",
+    "SWTD"
+  ],
+  "horizon": 1,
+  "model": {
+    "decay": 1e-05,
+    "dropout": 0.3,
+    "hidden_units": 512,
+    "learning_rate": 0.0001
+  },
+  "patience": 20,
+  "seed": 1,
+  "seq_len": 7,
+  "target_col": "SWTD",
+  "test_years": [
+    2022,
+    2023
+  ],
+  "val_split": 0.2
+}
