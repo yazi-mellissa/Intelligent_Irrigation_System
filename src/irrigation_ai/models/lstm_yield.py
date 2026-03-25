@@ -36,7 +36,20 @@ def build_lstm_yield(*, seq_len: int, n_features: int, config: LstmYieldConfig):
     outputs = tf.keras.layers.Dense(1, name="yield")(x)
 
     model = tf.keras.Model(inputs=inputs, outputs=outputs, name="lstm_yield")
-    opt = tf.keras.optimizers.Adam(learning_rate=config.learning_rate, decay=config.decay)
+
+    # Keras 3 removed the deprecated `decay` argument on optimizers.
+    # Use an equivalent inverse-time schedule when a decay is provided.
+    if config.decay and config.decay > 0:
+        lr = tf.keras.optimizers.schedules.InverseTimeDecay(
+            initial_learning_rate=config.learning_rate,
+            decay_steps=1,
+            decay_rate=config.decay,
+            staircase=False,
+        )
+    else:
+        lr = config.learning_rate
+
+    opt = tf.keras.optimizers.Adam(learning_rate=lr)
     model.compile(
         optimizer=opt,
         loss="mse",
@@ -46,4 +59,3 @@ def build_lstm_yield(*, seq_len: int, n_features: int, config: LstmYieldConfig):
         ],
     )
     return model
-

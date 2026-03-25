@@ -4,7 +4,7 @@ This file is a **template** to answer the Google Form in the prompt. Replace pla
 
 ## A. Code & Repositories
 
-**Public repo URL**: `<PUT_GITHUB_OR_GITLAB_URL_HERE>`
+**Public repo URL**: `https://github.com/yazi-mellissa/Intelligent_Irrigation_System.git`
 
 **Core model code paths** (this repo):
 
@@ -22,9 +22,10 @@ This file is a **template** to answer the Google Form in the prompt. Replace pla
 
 **Three commit SHAs (authored by me in this repo)**:
 
-- Data provenance/docs: `741226f`
-- LSTM1/LSTM2 scripts: `820f515`
-- DQN agent + env: `aa18e53`
+- Data provenance/docs: `741226f` (docs(data): document datasets and provenance)
+- LSTM1/LSTM2 scripts: `820f515` (feat(models): add reproducible LSTM1/LSTM2 training scripts)
+- DQN agent + env: `aa18e53` (feat(rl): add DQN agent and irrigation environment)
+
 
 **My role (≤50 words)**:
 

@@ -35,7 +35,20 @@ def build_lstm_swtd(*, n_features: int, config: LstmSwtdConfig):
 
     model = tf.keras.Model(inputs=inputs, outputs=outputs, name="lstm_swtd")
 
-    opt = tf.keras.optimizers.Adam(learning_rate=config.learning_rate, decay=config.decay)
+    # Keras 3 removed the deprecated `decay` argument on optimizers.
+    # The closest equivalent of the old behavior (lr / (1 + decay * step)) is InverseTimeDecay
+    # with decay_steps=1.
+    if config.decay and config.decay > 0:
+        lr = tf.keras.optimizers.schedules.InverseTimeDecay(
+            initial_learning_rate=config.learning_rate,
+            decay_steps=1,
+            decay_rate=config.decay,
+            staircase=False,
+        )
+    else:
+        lr = config.learning_rate
+
+    opt = tf.keras.optimizers.Adam(learning_rate=lr)
     model.compile(
         optimizer=opt,
         loss="mse",
@@ -47,4 +60,3 @@ def build_lstm_swtd(*, n_features: int, config: LstmSwtdConfig):
     )
 
     return model
-
